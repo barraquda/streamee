@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace Barracuda
 {
-    public static partial class Stream
+    public static partial class Streamee
     {
-        private class TerminalImpl<T> : IStream<T>
+        private class TerminalImpl<T> : IStreamee<T>
         {
             public TerminalImpl(T value)
             {
@@ -14,31 +14,31 @@ namespace Barracuda
             }
 
             private T value;
-            public IEnumerable<IStream<T>> GetEnumerable()
+            public IEnumerable<IStreamee<T>> GetEnumerable()
             {
                 yield return this;
             }
 
-            public IStream<U> Select<U>(Func<T, U> selector)
+            public IStreamee<U> Select<U>(Func<T, U> selector)
             {
-                return Stream.Terminal(selector(value));
+                return Streamee.Terminal(selector(value));
             }
 
-            public IStream<U> SelectMany<U>(Func<T, IStream<U>> selector)
+            public IStreamee<U> SelectMany<U>(Func<T, IStreamee<U>> selector)
             {
                 return selector(value);
             }
 
-            public IStream<T> Where(Predicate<T> predicator)
+            public IStreamee<T> Where(Predicate<T> predicator)
             {
                 if (predicator(value)) {
                     return this;
                 } else {
-                    return Stream.None<T>();
+                    return Streamee.None<T>();
                 }
             }
 
-            public IStream<T> Do(Action<T> executor)
+            public IStreamee<T> Do(Action<T> executor)
             {
                 executor(value);
                 return this;
