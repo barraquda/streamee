@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,6 +9,24 @@ namespace Barracuda
 	{
 		private class BranchImpl<T> : IStreamee<T>
 		{
+			IEnumerator<IStreamee<T>> IEnumerable<IStreamee<T>>.GetEnumerator()
+			{
+				foreach (var streamee in streams) {
+					var enumerator = streamee.GetEnumerator();
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current;
+					}
+				}
+			}
+
+			IEnumerator IEnumerable.GetEnumerator()
+			{
+				var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator();
+				while (enumerator.MoveNext()) {
+					yield return enumerator.Current;
+				}
+			}
+
 			public BranchImpl(IEnumerable<IStreamee<T>> streams)
 			{
 				this.streams = streams;
@@ -16,20 +35,6 @@ namespace Barracuda
 			private IEnumerable<IStreamee<T>> streams;
 
 			private IEnumerable<IStreamee<T>> cachedSerializedStreams;
-
-			public IEnumerable<IStreamee<T>> GetEnumerable()
-			{
-				return cachedSerializedStreams = cachedSerializedStreams ?? CreateEnumerable();
-			}
-
-			private IEnumerable<IStreamee<T>> CreateEnumerable()
-			{
-				foreach (var stream in streams) {
-					foreach (var childStream in stream.GetEnumerable()) {
-						yield return childStream;
-					}
-				}
-			}
 
 			public IStreamee<U> Select<U>(Func<T, U> selector)
 			{

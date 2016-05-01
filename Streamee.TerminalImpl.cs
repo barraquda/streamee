@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,17 +9,22 @@ namespace Barracuda
 	{
 		private class TerminalImpl<T> : IStreamee<T>
 		{
+			IEnumerator<IStreamee<T>> IEnumerable<IStreamee<T>>.GetEnumerator()
+			{
+				yield return this;
+			}
+
+			IEnumerator IEnumerable.GetEnumerator()
+			{
+				yield return this;
+			}
+
 			public TerminalImpl(T value)
 			{
 				this.value = value;
 			}
 
 			private T value;
-
-			public IEnumerable<IStreamee<T>> GetEnumerable()
-			{
-				yield return this;
-			}
 
 			public IStreamee<U> Select<U>(Func<T, U> selector)
 			{

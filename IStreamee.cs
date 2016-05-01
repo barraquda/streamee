@@ -5,10 +5,8 @@ using System.Collections;
 
 namespace Barracuda
 {
-	public interface IStreamee<T>
+	public interface IStreamee<T> : IEnumerable<IStreamee<T>>
 	{
-		IEnumerable<IStreamee<T>> GetEnumerable();
-
 		IStreamee<U> Select<U>(Func<T, U> selector);
 
 		IStreamee<U> SelectMany<U>(Func<T, IStreamee<U>> selector);

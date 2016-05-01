@@ -5,27 +5,30 @@ using System.Collections;
 
 namespace Barracuda
 {
-
-	public class Streamer : MonoBehaviour
+	public class Streamer<T> : IDisposable
 	{
-		public void Feed<T>(IStreamee<T> streamee)
-		{
+		IStreamee<T> streamee;
+		IEnumerator<IStreamee<T>> enumerator;
 
+		public Streamer(IStreamee<T> streamee)
+		{
+			this.streamee = streamee;
 		}
 
-		public void Run<T>(IStreamee<T> stream, Action<T> runAction)
+		public IStreamee<T> Feed()
 		{
-			var enumerator = stream.GetEnumerable().GetEnumerator();
-			StartCoroutine(RunEnumerator(enumerator, runAction));
-		}
-
-		IEnumerator RunEnumerator<T>(IEnumerator<IStreamee<T>> enumerator, Action<T> runAction)
-		{
-			while (enumerator.MoveNext()) {
-				enumerator.Current.Do(runAction);
-				yield return null;
+			if (enumerator == null) {
+				enumerator = streamee.GetEnumerator();
 			}
-			Destroy(gameObject);
+			enumerator.MoveNext();
+			return enumerator.Current;
+		}
+
+		public void Dispose()
+		{
+			if (enumerator != null) {
+				enumerator.Dispose();
+			}
 		}
 	}
 }

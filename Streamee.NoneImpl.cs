@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -8,7 +9,12 @@ namespace Barracuda
 	{
 		private class NoneImpl<T> : IStreamee<T>
 		{
-			public IEnumerable<IStreamee<T>> GetEnumerable()
+			IEnumerator<IStreamee<T>> IEnumerable<IStreamee<T>>.GetEnumerator()
+			{
+				yield return this;
+			}
+
+			IEnumerator IEnumerable.GetEnumerator()
 			{
 				yield return this;
 			}

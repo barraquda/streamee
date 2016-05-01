@@ -39,7 +39,15 @@ namespace Barracuda
 
 		public static IEnumerable<IStreamee<T>> Serialize<T>(IEnumerable<IStreamee<T>> streams)
 		{
-			return Branch(streams).GetEnumerable();
+			var enumerator = Branch(streams).GetEnumerator();
+			while (enumerator.MoveNext()) {
+				yield return enumerator.Current;
+			}
+		}
+
+		public static IStreamee<T> ToStreamee<T>(this IEnumerable<IStreamee<T>> enumerable)
+		{
+			return Branch(enumerable);
 		}
 
 		public static IStreamee<Unit> Wait(System.TimeSpan timeSpan)
@@ -91,31 +99,20 @@ namespace Barracuda
 
 		public static IStreamee<V> Merge<T, U, V>(IStreamee<T> lhs, IStreamee<U> rhs, Func<T, U, V> converter)
 		{
-			var left = lhs.GetEnumerable();
-			var right = rhs.GetEnumerable();
-			return Streamee.Branch(MergeEnumerable(left, right, converter));
+			return Streamee.Branch(MergeEnumerable(lhs, rhs, converter));
 		}
 
 		public static IStreamee<Unit> MergeToUnit<T, U>(IStreamee<T> lhs, IStreamee<T> rhs)
 		{
-			var left = lhs.GetEnumerable();
-			var right = lhs.GetEnumerable();
-			return Streamee.Branch(MergeEnumerable(left, right, (_1, _2) => Unit.Default));
+			return Streamee.Branch(MergeEnumerable(lhs, rhs, (_1, _2) => Unit.Default));
 		}
 
-		private static IEnumerable<IStreamee<V>> MergeEnumerable<T, U, V>
-        (IEnumerable<IStreamee<T>> lhs, IEnumerable<IStreamee<U>> rhs, Func<T, U, V> converter)
+		private static IEnumerable<IStreamee<V>> MergeEnumerable<T, U, V>(IStreamee<T> left, IStreamee<U> right, Func<T, U, V> converter)
 		{
-			using (var left = lhs.GetEnumerator())
-			using (var right = rhs.GetEnumerator()) {
-				while (left.MoveNext() && right.MoveNext()) {
-					left.Current.SelectMany<V>(leftValue =>
-                        right.Current.Select<V>(rightValue =>
-                            converter(leftValue, rightValue)
-					)
-					);
-					yield return null;
-				}
+			using(var lhs = left.GetEnumerator())
+			using(var rhs = right.GetEnumerator())
+			while (lhs.MoveNext() && rhs.MoveNext()) {
+				yield return lhs.Current.SelectMany<V>(leftValue => rhs.Current.Select<V>(rightValue => converter(leftValue, rightValue)));
 			}
 		}
 
