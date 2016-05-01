@@ -55,6 +55,11 @@ namespace Barracuda
 			return new BranchImpl<Unit>(WaitEnumerable(timeSpan));
 		}
 
+		public static IStreamee<T> Lazy<T>(Func<T> lazyValue)
+		{
+			return new LazyTerminalImpl<T>(lazyValue);
+		}
+
 		private static IEnumerable<IStreamee<Unit>> WaitEnumerable(System.TimeSpan timeSpan)
 		{
 			var time = Time.time;
@@ -102,7 +107,7 @@ namespace Barracuda
 			return Streamee.Branch(MergeEnumerable(lhs, rhs, converter));
 		}
 
-		public static IStreamee<Unit> MergeToUnit<T, U>(IStreamee<T> lhs, IStreamee<T> rhs)
+		public static IStreamee<Unit> MergeToUnit<T, U>(IStreamee<T> lhs, IStreamee<U> rhs)
 		{
 			return Streamee.Branch(MergeEnumerable(lhs, rhs, (_1, _2) => Unit.Default));
 		}
