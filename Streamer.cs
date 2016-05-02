@@ -15,13 +15,16 @@ namespace Barracuda
 			this.streamee = streamee;
 		}
 
-		public IStreamee<T> Feed()
+		public bool Feed(Action<T> action = null)
 		{
 			if (enumerator == null) {
 				enumerator = streamee.GetEnumerator();
 			}
-			enumerator.MoveNext();
-			return enumerator.Current;
+			var continuing = enumerator.MoveNext();
+			if (continuing && action != null) {
+				enumerator.Current.Do(action);
+			}
+			return continuing;
 		}
 
 		public void Dispose()
