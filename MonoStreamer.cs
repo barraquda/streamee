@@ -4,12 +4,15 @@ using UnityEngine;
 using System.Collections;
 
 using Barracuda.Internal;
+using Barracuda.UISystem;
 
-namespace Barracuda.Internal
+namespace Barracuda
 {
-	public class MonoStreamer : MonoBehaviour, IMonoStreamer
+	public class MonoStreamer : MonoBehaviour, IDisposable
 	{
 		public IStreamer Streamer { get; set; }
+
+		[SerializeField] private Tween[] streamees;
 
 		void Update()
 		{

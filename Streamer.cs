@@ -20,12 +20,12 @@ namespace Barracuda
 			this.streamee = streamee;
 		}
 
-		public IMonoStreamer Run()
+		public MonoStreamer Run()
 		{
 			return Run(null);
 		}
 
-		public IMonoStreamer Run(Action<T> subscriber)
+		public MonoStreamer Run(Action<T> subscriber)
 		{
 			if (monoStreamerDisposable != null) {
 				monoStreamerDisposable.Dispose();
