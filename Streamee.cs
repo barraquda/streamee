@@ -9,6 +9,10 @@ namespace Barracuda
 	{
 		public static IStreamee<T> Branch<T>(IEnumerable<IStreamee<T>> streams)
 		{
+			var branch = streams as BranchImpl<T>;
+			if (branch != null) {
+				return branch;
+			}
 			return new BranchImpl<T>(streams);
 		}
 
@@ -35,14 +39,6 @@ namespace Barracuda
 
 		public static IStreamee<Unit> UnitEmpty {
 			get { return unitEmpty; }
-		}
-
-		public static IEnumerable<IStreamee<T>> Serialize<T>(IEnumerable<IStreamee<T>> streams)
-		{
-			var enumerator = Branch(streams).GetEnumerator();
-			while (enumerator.MoveNext()) {
-				yield return enumerator.Current;
-			}
 		}
 
 		public static IStreamee<T> ToStreamee<T>(this IEnumerable<IStreamee<T>> enumerable)

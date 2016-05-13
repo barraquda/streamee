@@ -12,19 +12,20 @@ namespace Barracuda
 			IEnumerator<IStreamee<T>> IEnumerable<IStreamee<T>>.GetEnumerator()
 			{
 				foreach (var streamee in streams) {
-					var enumerator = streamee.GetEnumerator();
-					while (enumerator.MoveNext()) {
-						yield return enumerator.Current;
+					using (var enumerator = streamee.GetEnumerator()) {
+						while (enumerator.MoveNext()) {
+							yield return enumerator.Current;
+						}
 					}
 				}
 			}
 
 			IEnumerator IEnumerable.GetEnumerator()
 			{
-				var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator();
-				while (enumerator.MoveNext()) {
-					yield return enumerator.Current;
-				}
+				using (var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator())
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current;
+					}
 			}
 
 			public BranchImpl(IEnumerable<IStreamee<T>> streams)
@@ -43,9 +44,10 @@ namespace Barracuda
 
 			private IEnumerable<IStreamee<U>> SelectEnumerable<U>(Func<T, U> selector)
 			{
-				foreach (var stream in streams) {
-					yield return stream.Select(selector);
-				}
+				using (var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator())
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current.Select(selector);
+					}
 			}
 
 			public IStreamee<U> SelectMany<U>(Func<T, IStreamee<U>> selector)
@@ -55,9 +57,10 @@ namespace Barracuda
 
 			private IEnumerable<IStreamee<U>> SelectManyEnumerable<U>(Func<T, IStreamee<U>> selector)
 			{
-				foreach (var stream in streams) {
-					yield return stream.SelectMany(selector);
-				}
+				using (var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator())
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current.SelectMany(selector);
+					}
 			}
 
 			public IStreamee<T> Where(Predicate<T> predicator)
@@ -67,9 +70,10 @@ namespace Barracuda
 
 			private IEnumerable<IStreamee<T>> WhereEnumerable(Predicate<T> predicator)
 			{
-				foreach (var stream in streams) {
-					yield return stream.Where(predicator);
-				}
+				using (var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator())
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current.Where(predicator);
+					}
 			}
 
 			public IStreamee<T> Do(Action<T> executor)
@@ -79,9 +83,10 @@ namespace Barracuda
 
 			private IEnumerable<IStreamee<T>> DoEnumerable(Action<T> executor)
 			{
-				foreach (var stream in streams) {
-					yield return stream.Do(executor);
-				}
+				using (var enumerator = ((IEnumerable<IStreamee<T>>)this).GetEnumerator())
+					while (enumerator.MoveNext()) {
+						yield return enumerator.Current.Do(executor);
+					}
 			}
 		}
 	}
