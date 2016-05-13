@@ -3,26 +3,62 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Collections;
 
+using Barracuda.Internal;
+
 namespace Barracuda
 {
-	public class Streamer<T> : IDisposable
+	public class Streamer<T> : IStreamer
 	{
 		IStreamee<T> streamee;
 		IEnumerator<IStreamee<T>> enumerator;
+		Action<T> subscriber;
+
+		IDisposable monoStreamerDisposable;
 
 		public Streamer(IStreamee<T> streamee)
 		{
 			this.streamee = streamee;
 		}
 
-		public bool Feed(Action<T> action = null)
+		public MonoStreamer Run()
+		{
+			return Run(null);
+		}
+
+		public MonoStreamer Run(Action<T> subscriber)
+		{
+			if (monoStreamerDisposable != null) {
+				monoStreamerDisposable.Dispose();
+			}
+
+			this.subscriber = subscriber;
+			var gameObject = new GameObject("MonoStreamer");
+			var monoStreamer = gameObject.AddComponent<MonoStreamer>();
+			monoStreamer.Streamer = this;
+
+			monoStreamerDisposable = monoStreamer;
+
+			return monoStreamer;
+		}
+
+		public bool Feed()
+		{
+			return Feed(null);
+		}
+
+		public bool Feed(Action<T> action)
 		{
 			if (enumerator == null) {
 				enumerator = streamee.GetEnumerator();
 			}
 			var continuing = enumerator.MoveNext();
-			if (continuing && action != null) {
-				enumerator.Current.Do(action);
+			if (continuing) {
+				if (action != null) {
+					enumerator.Current.Do(action);
+				}
+				if (subscriber != null) {
+					enumerator.Current.Do(subscriber);
+				}
 			}
 			return continuing;
 		}
